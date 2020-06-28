@@ -1,12 +1,14 @@
 #include "game.h"
 #include <iostream>
+#include <string>
+#include <sstream>
 #include "SDL.h"
 
 Game::Game(std::size_t grid_width, std::size_t grid_height)
     : snake(grid_width, grid_height),
       engine(dev()),
-      random_w(0, static_cast<int>(grid_width)),
-      random_h(0, static_cast<int>(grid_height)) {
+      random_w(0, static_cast<int>(grid_width-1)),
+      random_h(0, static_cast<int>(grid_height-1)) {
   PlaceFood();
 }
 
@@ -18,14 +20,14 @@ void Game::Run(Controller const &controller, Renderer &renderer,
   Uint32 frame_duration;
   int frame_count = 0;
   bool running = true;
-
+  PLaceBarriers();
   while (running) {
     frame_start = SDL_GetTicks();
 
     // Input, Update, Render - the main game loop.
     controller.HandleInput(running, snake);
     Update();
-    renderer.Render(snake, food);
+    renderer.Render(snake, food,_Barriers,!snake.alive);
 
     frame_end = SDL_GetTicks();
 
@@ -57,14 +59,62 @@ void Game::PlaceFood() {
     y = random_h(engine);
     // Check that the location is not occupied by a snake item before placing
     // food.
-    if (!snake.SnakeCell(x, y)) {
+    if (!snake.SnakeCell(x, y) && !BarreirCell(x,y)) {
       food.x = x;
       food.y = y;
+      //std::cout<<"food location :" <<x<<","<<y<<std::endl;
       return;
     }
   }
 }
+bool Game::BarreirCell(int x,int y)
+{
+ for(auto const item:_Barriers)
+ {
+   if(item.x==x && item.y==y)
+   {
+     return true;
+   }
 
+ }
+
+}
+void Game::PLaceBarriers(){
+ std::fstream filestream(BarrirtPath);
+ std::string line;
+ SDL_Point barrier;
+ std::string xvalue,yvalue;
+ int x,y;
+
+  if(filestream.is_open())
+  {
+    
+    while (std::getline(filestream,line))
+    {
+      std::istringstream linestreamer(line);
+      linestreamer >>xvalue>>yvalue;
+      //std::cout<<"Barriers x:"<<xvalue<<"Barriers y:"<<yvalue<<std::endl;
+      barrier.x=std::stoi(xvalue);
+      barrier.y=std::stoi(yvalue);
+      _Barriers.push_back(barrier);
+    }
+      
+
+  }
+  //pLace some randome Barriers
+ 
+  for(int i=0;i<5;i++) {
+    x = random_w(engine);
+    y = random_h(engine);
+    // Check that the location is not occupied by a snake item before placing
+    // food.
+      barrier.x = x;
+      barrier.y = y;
+      _Barriers.push_back(barrier);
+
+  }
+
+}
 void Game::Update() {
   if (!snake.alive) return;
 
@@ -72,15 +122,22 @@ void Game::Update() {
 
   int new_x = static_cast<int>(snake.head_x);
   int new_y = static_cast<int>(snake.head_y);
-
+  //if its hit a Barrier
+  if(BarreirCell(new_x,new_y)){
+    snake.alive=false;
+    return ;
+  }
+  //PLaceBarriers();
   // Check if there's food over here
   if (food.x == new_x && food.y == new_y) {
     score++;
+    
     PlaceFood();
     // Grow snake and increase speed.
     snake.GrowBody();
     snake.speed += 0.02;
   }
+  
 }
 
 int Game::GetScore() const { return score; }

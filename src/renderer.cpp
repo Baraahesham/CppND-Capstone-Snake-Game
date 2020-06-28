@@ -24,6 +24,15 @@ Renderer::Renderer(const std::size_t screen_width,
     std::cerr << "Window could not be created.\n";
     std::cerr << " SDL_Error: " << SDL_GetError() << "\n";
   }
+  // Create close window Window
+  Renderer::sdl_closing_window = SDL_CreateWindow("Game Over", SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED, screen_width,
+                                screen_height, SDL_WINDOW_HIDDEN);
+  
+  if (nullptr == sdl_window) {
+    std::cerr << "Window could not be created.\n";
+    std::cerr << " SDL_Error: " << SDL_GetError() << "\n";
+  }
 
   // Create renderer
   sdl_renderer = SDL_CreateRenderer(sdl_window, -1, SDL_RENDERER_ACCELERATED);
@@ -35,14 +44,19 @@ Renderer::Renderer(const std::size_t screen_width,
 
 Renderer::~Renderer() {
   SDL_DestroyWindow(sdl_window);
+  SDL_DestroyWindow(sdl_closing_window);
   SDL_Quit();
 }
 
-void Renderer::Render(Snake const snake, SDL_Point const &food) {
+void Renderer::Render(Snake const snake, SDL_Point const &food,std::vector<SDL_Point> Barriers,bool GameEnded) {
   SDL_Rect block;
   block.w = screen_width / grid_width;
   block.h = screen_height / grid_height;
+  if(GameEnded){
+    
+    
 
+  }
   // Clear screen
   SDL_SetRenderDrawColor(sdl_renderer, 0x1E, 0x1E, 0x1E, 0xFF);
   SDL_RenderClear(sdl_renderer);
@@ -52,6 +66,16 @@ void Renderer::Render(Snake const snake, SDL_Point const &food) {
   block.x = food.x * block.w;
   block.y = food.y * block.h;
   SDL_RenderFillRect(sdl_renderer, &block);
+
+  //Render Barrier 
+  SDL_SetRenderDrawColor(sdl_renderer, 255, 0, 0, 255);
+ 
+  for (SDL_Point const &point : Barriers) 
+  {
+    block.x = point.x * block.w;
+    block.y = point.y * block.h;
+    SDL_RenderFillRect(sdl_renderer, &block);
+  }
 
   // Render snake's body
   SDL_SetRenderDrawColor(sdl_renderer, 0xFF, 0xFF, 0xFF, 0xFF);

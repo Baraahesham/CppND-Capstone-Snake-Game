@@ -2,6 +2,8 @@
 #define GAME_H
 
 #include <random>
+#include <string>
+#include <fstream>
 #include "SDL.h"
 #include "controller.h"
 #include "renderer.h"
@@ -18,6 +20,8 @@ class Game {
  private:
   Snake snake;
   SDL_Point food;
+  std::vector<SDL_Point> _Barriers;
+  const std::string BarrirtPath{"/home/workspace/CppND-Capstone-Snake-Game/Barriers"};
 
   std::random_device dev;
   std::mt19937 engine;
@@ -25,8 +29,10 @@ class Game {
   std::uniform_int_distribution<int> random_h;
 
   int score{0};
-
+  
   void PlaceFood();
+  void PLaceBarriers();
+  bool BarreirCell(int x,int y);
   void Update();
 };
 
